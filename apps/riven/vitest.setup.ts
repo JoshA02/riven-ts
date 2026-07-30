@@ -7,6 +7,8 @@ import { setEnvironmentData } from "node:worker_threads";
 import { afterAll, beforeAll, beforeEach, expect, vi } from "vitest";
 import z from "zod";
 
+import { queueRegistry } from "./lib/message-queue/utilities/queue-registry.ts";
+
 import type { RivenPlugin } from "@repo/util-plugin-sdk";
 import type { RedisClient } from "bullmq";
 import type { RedisMemoryServer } from "redis-memory-server";
@@ -172,8 +174,14 @@ beforeAll(() => {
 beforeEach(async () => {
   const { database } = await import("./lib/database/database.ts");
 
+  for (const queue of queueRegistry.values()) {
+    await queue.disconnect();
+  }
+
   await database.orm.schema.clear();
   await redisClient?.flushdb();
+
+  queueRegistry.clear();
 });
 
 afterAll(async () => {
