@@ -51,9 +51,28 @@ export class MediaItemResolver {
   public async resetMediaItem(
     @Arg("id", () => ID) id: UUID,
     @CoreContext() { services: { mediaItemService } }: CoreContext,
+    @Ctx() { logger }: ApolloServerContext,
   ): Promise<MediaItem[]> {
     const item = await mediaItemService.getMediaItemById(id);
     const resetItems = await mediaItemService.resetMediaItem(item);
+
+    const { enqueueProcessMediaItem } =
+      await import("../../message-queue/flows/process-media-item/enqueue-process-media-item.ts");
+
+    await clearDeduplicationJob(
+      "process-media-item",
+      `process-${item.type}-${item.id}`,
+    );
+
+    await enqueueProcessMediaItem({
+      id: item.id,
+      isRootItem: mediaItemService.rootItemTypes.has(item.type),
+      fanOut: false,
+    });
+
+    logger.info(
+      `Reset ${chalk.bold(item.fullTitle)} and enqueued for processing.`,
+    );
 
     return [...resetItems];
   }
