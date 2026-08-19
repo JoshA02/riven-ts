@@ -132,6 +132,16 @@ export abstract class MediaItem {
   @Enum({
     default: MediaItemState.enum.indexed,
     items: () => MediaItemState.enum,
+    customOrder: [
+      MediaItemState.enum.completed,
+      MediaItemState.enum.partially_completed,
+      MediaItemState.enum.downloaded,
+      MediaItemState.enum.scraped,
+      MediaItemState.enum.indexed,
+      MediaItemState.enum.unreleased,
+      MediaItemState.enum.paused,
+      MediaItemState.enum.failed,
+    ],
   })
   public state!: MediaItemState;
 
@@ -167,15 +177,17 @@ export abstract class MediaItem {
   @OneToMany(() => BlacklistedStream, "mediaItem")
   public blacklistedStreams = new Collection<BlacklistedStream>(this);
 
-  @Field(() => String)
+  @Field(() => MediaItemType.enum)
   @Enum(() => MediaItemType.enum)
   public type!: MediaItemType;
 
+  @Field(() => ItemRequest)
   @ManyToOne(() => ItemRequest, {
     deleteRule: "cascade",
   })
   public itemRequest!: Ref<ItemRequest>;
 
+  @Field(() => Boolean)
   @Property()
   public isRequested!: boolean;
 
@@ -203,6 +215,10 @@ export abstract class MediaItem {
     this.scrapedAt = null;
     this.streams.removeAll();
     this.filesystemEntries.removeAll();
+
+    if (this.state === "failed") {
+      this.state = "indexed";
+    }
   }
 
   /**

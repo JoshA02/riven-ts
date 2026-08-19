@@ -16,8 +16,8 @@ describe("removeItemRequest", () => {
     RemoveItemRequestMutation,
     RemoveItemRequestMutationVariables
   > = gql`
-    mutation RemoveItemRequest($id: ID!) {
-      removeItemRequest(id: $id)
+    mutation RemoveItemRequest($itemRequestId: ID!) {
+      removeItemRequest(itemRequestId: $itemRequestId)
     }
   `;
 
@@ -41,7 +41,7 @@ describe("removeItemRequest", () => {
       {
         query: REMOVE_ITEM_REQUEST,
         variables: {
-          id: completedMovie.itemRequest.id,
+          itemRequestId: completedMovie.itemRequest.id,
         },
       },
       { contextValue: gqlContext },
@@ -79,7 +79,7 @@ describe("removeItemRequest", () => {
         {
           query: REMOVE_ITEM_REQUEST,
           variables: {
-            id: completedMovie.itemRequest.id,
+            itemRequestId: completedMovie.itemRequest.id,
           },
         },
         { contextValue: gqlContext },
@@ -127,7 +127,7 @@ describe("removeItemRequest", () => {
         {
           query: REMOVE_ITEM_REQUEST,
           variables: {
-            id: completedShow.itemRequest.id,
+            itemRequestId: completedShow.itemRequest.id,
           },
         },
         { contextValue: gqlContext },
@@ -181,7 +181,7 @@ describe("removeItemRequest", () => {
         {
           query: REMOVE_ITEM_REQUEST,
           variables: {
-            id: completedMovie.itemRequest.id,
+            itemRequestId: completedMovie.itemRequest.id,
           },
         },
         { contextValue: gqlContext },
@@ -210,7 +210,7 @@ describe("removeItemRequest", () => {
         {
           query: REMOVE_ITEM_REQUEST,
           variables: {
-            id: completedMovie.itemRequest.id,
+            itemRequestId: completedMovie.itemRequest.id,
           },
         },
         { contextValue: gqlContext },
@@ -221,6 +221,7 @@ describe("removeItemRequest", () => {
       expect(gqlContext[CoreKey].sendEvent).toHaveBeenCalledWith({
         type: "riven.item-request.removed",
         item: expect.objectContaining({ id: completedMovie.itemRequest.id }),
+        title: completedMovie.title,
       });
     });
 
@@ -236,7 +237,7 @@ describe("removeItemRequest", () => {
         {
           query: REMOVE_ITEM_REQUEST,
           variables: {
-            id: completedMovie.itemRequest.id,
+            itemRequestId: completedMovie.itemRequest.id,
           },
         },
         { contextValue: gqlContext },
@@ -271,7 +272,7 @@ describe("removeItemRequest", () => {
         {
           query: REMOVE_ITEM_REQUEST,
           variables: {
-            id: completedMovie.itemRequest.id,
+            itemRequestId: completedMovie.itemRequest.id,
           },
         },
         { contextValue: gqlContext },
@@ -282,7 +283,7 @@ describe("removeItemRequest", () => {
       expect(sendEventSpy).toHaveBeenCalledTimes(0);
     });
 
-    it("returns false", async ({
+    it("throws the error", async ({
       completedMovieContext: { completedMovie },
       gqlContext,
       gqlServer,
@@ -294,7 +295,7 @@ describe("removeItemRequest", () => {
         {
           query: REMOVE_ITEM_REQUEST,
           variables: {
-            id: completedMovie.itemRequest.id,
+            itemRequestId: completedMovie.itemRequest.id,
           },
         },
         { contextValue: gqlContext },
@@ -302,7 +303,9 @@ describe("removeItemRequest", () => {
 
       expect.assert(body.kind === "single");
 
-      expect(body.singleResult.data?.removeItemRequest).toBe(false);
+      expect(body.singleResult.errors?.[0]?.message).toBe(
+        "Failed to remove item request",
+      );
     });
   });
 });
